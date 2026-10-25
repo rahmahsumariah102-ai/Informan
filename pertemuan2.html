@@ -1,0 +1,1367 @@
+<!DOCTYPE html>
+<html lang="id" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detektif Informasi: Pertemuan 2 - SMPN 3 Panongan</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Plus Jakarta Sans -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <!-- Three.js for 3D Background -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            coral: '#FF6B6B',
+                            teal: '#4ECDC4',
+                            yellow: '#FFE66D',
+                            purple: '#A06EE1',
+                            dark: '#1E293B',
+                            light: '#F8FAFC'
+                        }
+                    },
+                    animation: {
+                        'float': 'float 4s ease-in-out infinite',
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'shake': 'shake 0.4s ease-in-out',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px)' },
+                            '50%': { transform: 'translateY(-12px)' },
+                        },
+                        shake: {
+                            '0%, 100%': { transform: 'translateX(0)' },
+                            '20%, 60%': { transform: 'translateX(-10px)' },
+                            '40%, 80%': { transform: 'translateX(10px)' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Custom Styles & Glassmorphism */
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #0F172A;
+            overflow-x: hidden;
+        }
+
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.90);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 2px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-3d {
+            transition: all 0.15s ease;
+            box-shadow: 0 6px 0 rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-3d:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 rgba(0, 0, 0, 0.2);
+        }
+
+        /* Modal styling */
+        .custom-modal {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(8px);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.5);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #4ECDC4;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="h-full text-slate-800 antialiased selection:bg-brand-teal selection:text-white flex flex-col justify-between">
+
+    <!-- 3D Canvas Background -->
+    <div id="canvas-container"></div>
+
+    <!-- MAIN INTERFACE -->
+    <div class="relative z-10 flex flex-col min-h-screen">
+        
+        <!-- HEADER / NAVIGATION BAR -->
+        <header class="p-4 md:p-6 max-w-7xl w-full mx-auto">
+            <div class="glass-card rounded-3xl p-3 md:p-4 flex flex-wrap justify-between items-center gap-4">
+                <!-- Logo & School Info -->
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-brand-purple to-brand-teal flex items-center justify-center text-white text-2xl shadow-lg animate-float">
+                        📜
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h1 class="text-xl font-extrabold bg-gradient-to-r from-brand-coral via-brand-purple to-brand-teal bg-clip-text text-transparent">
+                                Detektif Informasi
+                            </h1>
+                            <span class="px-2.5 py-0.5 text-[10px] font-black bg-brand-purple text-white rounded-full">PERTEMUAN 2</span>
+                        </div>
+                        <p class="text-xs font-semibold text-slate-500">
+                            SMP Negeri 3 Panongan • Pengampu: Mrs. Rahmah, S.Sos
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Navigation Tabs -->
+                <nav class="flex flex-wrap items-center gap-2 bg-slate-100/80 p-1.5 rounded-2xl border border-slate-200">
+                    <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-btn px-4 py-2 rounded-xl text-xs md:text-sm font-bold transition-all bg-white text-slate-800 shadow-sm">
+                        <i class="fa-solid fa-house mr-1.5 text-brand-coral"></i> Beranda
+                    </button>
+                    <button onclick="switchTab('materi')" id="nav-materi" class="nav-btn px-4 py-2 rounded-xl text-xs md:text-sm font-bold transition-all text-slate-600 hover:text-slate-900">
+                        <i class="fa-solid fa-book-open mr-1.5 text-brand-purple"></i> Materi Literacy
+                    </button>
+                    <button onclick="switchTab('studi-kasus')" id="nav-studi-kasus" class="nav-btn px-4 py-2 rounded-xl text-xs md:text-sm font-bold transition-all text-slate-600 hover:text-slate-900">
+                        <i class="fa-solid fa-magnifying-glass-chart mr-1.5 text-brand-teal"></i> Analisis Narasi
+                    </button>
+                    <button onclick="switchTab('arcade-game')" id="nav-arcade-game" class="nav-btn px-4 py-2 rounded-xl text-xs md:text-sm font-bold transition-all text-slate-600 hover:text-slate-900">
+                        <i class="fa-solid fa-gamepad mr-1.5 text-brand-coral"></i> Game Arcade
+                    </button>
+                    <button onclick="switchTab('game')" id="nav-game" class="nav-btn px-4 py-2 rounded-xl text-xs md:text-sm font-bold transition-all text-slate-600 hover:text-slate-900">
+                        <i class="fa-solid fa-clipboard-check mr-1.5 text-brand-yellow"></i> Evaluasi (20 Soal)
+                    </button>
+                </nav>
+            </div>
+        </header>
+
+        <!-- CONTENT CONTAINER -->
+        <main class="flex-grow max-w-7xl w-full mx-auto px-4 md:px-6 py-4">
+            
+            <!-- SECTION 1: DASHBOARD / HOME -->
+            <section id="sec-dashboard" class="tab-content transition-all duration-300">
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+                    <!-- Hero Banner -->
+                    <div class="lg:col-span-7 glass-card rounded-3xl p-6 md:p-10 border-l-8 border-brand-purple">
+                        <span class="inline-block px-3 py-1 bg-brand-purple/10 text-brand-purple font-bold text-xs rounded-full mb-3">
+                            Pertemuan 2: Literasi Digital & Pemahaman Berita • Mrs. Rahmah, S.Sos
+                        </span>
+                        <h2 class="text-3xl md:text-5xl font-extrabold text-slate-900 leading-tight mb-4">
+                            Deteksi Hoaks <br><span class="bg-gradient-to-r from-brand-coral via-brand-purple to-brand-teal bg-clip-text text-transparent">Tingkatkan Literasi Digital!</span>
+                        </h2>
+                        <p class="text-slate-600 text-sm md:text-base leading-relaxed mb-6">
+                            Di Pertemuan 2 ini, Agen Detektif Kelas 8.3 & 8.4 diajak membaca narasi panjang secara kritis. Latih kemampuan membedakan data resmi, kutipan asli, narasi provokatif, dan jebokan pesan berantai WhatsApp!
+                        </p>
+                        <div class="flex flex-wrap gap-3">
+                            <button onclick="switchTab('game')" class="btn-3d px-6 py-3.5 bg-brand-coral text-white font-bold rounded-2xl shadow-lg hover:bg-red-500 flex items-center gap-2 text-sm">
+                                <i class="fa-solid fa-clipboard-check"></i> Kerjakan Evaluasi 20 Soal
+                            </button>
+                            <button onclick="switchTab('arcade-game')" class="btn-3d px-6 py-3.5 bg-brand-teal text-white font-bold rounded-2xl shadow-lg hover:bg-teal-500 flex items-center gap-2 text-sm">
+                                <i class="fa-solid fa-gamepad"></i> Main Game Saring Pesan
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Visual Quick Info Cards -->
+                    <div class="lg:col-span-5 grid grid-cols-1 gap-4">
+                        <div class="glass-card rounded-3xl p-5 border-l-4 border-brand-coral flex items-center gap-4">
+                            <div class="w-14 h-14 rounded-2xl bg-brand-coral/20 flex items-center justify-center text-brand-coral text-2xl font-bold">
+                                📰
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-slate-800">Literasi Kritis</h3>
+                                <p class="text-xs text-slate-500">Membaca paragraf secara menyeluruh, bukan sekadar membaca judul provokatif (clickbait).</p>
+                            </div>
+                        </div>
+
+                        <div class="glass-card rounded-3xl p-5 border-l-4 border-brand-purple flex items-center gap-4">
+                            <div class="w-14 h-14 rounded-2xl bg-brand-purple/20 flex items-center justify-center text-brand-purple text-2xl font-bold">
+                                ⚖️
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-slate-800">Skor Berbobot</h3>
+                                <p class="text-xs text-slate-500">Soal dibagi 3 tingkat: Mudah (10 Poin), Sedang (15 Poin), & Sukar (20 Poin).</p>
+                            </div>
+                        </div>
+
+                        <div class="glass-card rounded-3xl p-5 border-l-4 border-brand-teal flex items-center gap-4">
+                            <div class="w-14 h-14 rounded-2xl bg-brand-teal/20 flex items-center justify-center text-slate-800 text-2xl font-bold">
+                                📊
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-slate-800">Rekap Kelas 8.3 & 8.4</h3>
+                                <p class="text-xs text-slate-500">Hasil evaluasi dapat diunduh langsung oleh Mrs. Rahmah dalam format CSV/Excel.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 2: MATERI LITERASI -->
+            <section id="sec-materi" class="tab-content hidden transition-all duration-300">
+                <div class="max-w-4xl mx-auto space-y-6">
+                    <!-- Title -->
+                    <div class="glass-card rounded-3xl p-6 text-center border-b-4 border-brand-purple">
+                        <h2 class="text-2xl md:text-3xl font-extrabold text-slate-900">
+                            📖 Ruang Belajar Literasi Digital: Strategi Verifikasi
+                        </h2>
+                        <p class="text-slate-600 text-xs md:text-sm mt-1">
+                            Teknik membaca teks panjang untuk menemukan bukti fakta dan mengenali jebakan manipulasi.
+                        </p>
+                    </div>
+
+                    <!-- Grid Concept Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Card Strategi 1 -->
+                        <div class="glass-card rounded-3xl p-6 border-t-8 border-brand-teal flex flex-col justify-between">
+                            <div>
+                                <div class="flex items-center justify-between mb-4">
+                                    <span class="px-3 py-1 bg-brand-teal/20 text-brand-teal font-extrabold text-xs rounded-full">
+                                        Teknik #1
+                                    </span>
+                                    <span class="text-3xl">🔍</span>
+                                </div>
+                                <h3 class="text-xl font-extrabold text-slate-800 mb-2">Periksa Ciri Pesan Berantai Hoaks</h3>
+                                <p class="text-slate-600 text-sm leading-relaxed mb-4">
+                                    Berita palsu sering memanfaatkan emosi pembaca (panik, marah, gembira berlebihan) agar segera dibagikan tanpa berpikir.
+                                </p>
+                                <ul class="text-xs text-slate-700 space-y-2 bg-teal-50/70 p-4 rounded-2xl border border-teal-100">
+                                    <li class="flex items-center gap-2">
+                                        <i class="fa-solid fa-circle-exclamation text-brand-coral"></i> Menggunakan huruf kapital berlebihan & tanda seru banyak (!!!).
+                                    </li>
+                                    <li class="flex items-center gap-2">
+                                        <i class="fa-solid fa-circle-exclamation text-brand-coral"></i> Mengaku dari "Dokter/Ahli Instansi" tanpa nama jelas.
+                                    </li>
+                                    <li class="flex items-center gap-2">
+                                        <i class="fa-solid fa-circle-exclamation text-brand-coral"></i> Paksaan mendesak: *"Sebarkan ke 10 grup sekarang!"*
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- Card Strategi 2 -->
+                        <div class="glass-card rounded-3xl p-6 border-t-8 border-brand-purple flex flex-col justify-between">
+                            <div>
+                                <div class="flex items-center justify-between mb-4">
+                                    <span class="px-3 py-1 bg-brand-purple/20 text-brand-purple font-extrabold text-xs rounded-full">
+                                        Teknik #2
+                                    </span>
+                                    <span class="text-3xl">📚</span>
+                                </div>
+                                <h3 class="text-xl font-extrabold text-slate-800 mb-2">Literasi Pembaca Kritis</h3>
+                                <p class="text-slate-600 text-sm leading-relaxed mb-4">
+                                    Jangan menyimpulkan isi artikel hanya dari membaca judulnya saja (Title-Only Reading).
+                                </p>
+                                <ul class="text-xs text-slate-700 space-y-2 bg-purple-50/70 p-4 rounded-2xl border border-purple-100">
+                                    <li class="flex items-center gap-2">
+                                        <i class="fa-solid fa-circle-check text-brand-purple"></i> Baca paragraf utama hingga paragraf penutup.
+                                    </li>
+                                    <li class="flex items-center gap-2">
+                                        <i class="fa-solid fa-circle-check text-brand-purple"></i> Bandingkan dengan minimal 2 situs berita terverifikasi Dewan Pers.
+                                    </li>
+                                    <li class="flex items-center gap-2">
+                                        <i class="fa-solid fa-circle-check text-brand-purple"></i> Pisahkan mana *kutipan narasumber* dan mana *asumsi penulis*.
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Mindful Learning Box -->
+                    <div class="glass-card rounded-3xl p-6 border-l-8 border-brand-yellow bg-gradient-to-r from-amber-50/50 to-white">
+                        <div class="flex items-start gap-4">
+                            <div class="text-4xl">🧠</div>
+                            <div>
+                                <h4 class="font-extrabold text-slate-800 text-lg">Prinsip Pertemuan 2: Saring Sebelum Sharing</h4>
+                                <p class="text-xs md:text-sm text-slate-600 mt-1 leading-relaxed">
+                                    *"Informasi yang tidak diverifikasi adalah ibarat sampah yang dihiasi bungkus pita. Sebagai siswa cerdas SMPN 3 Panongan, kita bertanggung jawab menjaga kebersihan ruang digital kita!"* — Mrs. Rahmah, S.Sos
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 3: STUDI KASUS & NAFAS LITERASI -->
+            <section id="sec-studi-kasus" class="tab-content hidden transition-all duration-300">
+                <div class="max-w-4xl mx-auto space-y-6">
+                    <div class="glass-card rounded-3xl p-6 text-center border-b-4 border-brand-teal">
+                        <h2 class="text-2xl md:text-3xl font-extrabold text-slate-900">
+                            🔍 Bedah Narasi & Teks Panjang
+                        </h2>
+                        <p class="text-slate-600 text-xs md:text-sm mt-1">
+                            Pelajari bagaimana mendeteksi kekeliruan logika (Logical Fallacy) dan manipulasi berita dalam paragraf.
+                        </p>
+                    </div>
+
+                    <div id="case-study-list" class="space-y-4">
+                        <!-- Dynamic case studies rendered via JS -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 4: GAME ONLINE ARCADE (MINI GAME DETEKTIF PERTEMUAN 2) -->
+            <section id="sec-arcade-game" class="tab-content hidden transition-all duration-300">
+                <div class="max-w-3xl mx-auto">
+                    
+                    <!-- Game Start Overlay Card -->
+                    <div id="arcade-start-card" class="glass-card rounded-3xl p-6 md:p-8 text-center border-t-8 border-brand-coral">
+                        <div class="w-20 h-20 bg-brand-coral/20 text-brand-coral rounded-3xl flex items-center justify-center text-4xl mx-auto mb-4 animate-float">
+                            ⚡
+                        </div>
+                        <h2 class="text-3xl font-extrabold text-slate-900 mb-2">
+                            Arcade Saring Pesan: WhatsApp Guard
+                        </h2>
+                        <p class="text-xs md:text-sm text-slate-600 mb-6 max-w-lg mx-auto">
+                            Pesan WhatsApp masuk bertubi-tubi! Klasifikasikan mana pesan **VALID & TEPERCAYA** ✅ dan mana pesan **HOAKS / PROVOKASI** ❌ sebelum waktu habis!
+                        </p>
+
+                        <div class="flex justify-center gap-6 mb-8 text-xs font-bold text-slate-700">
+                            <div class="bg-white/80 px-4 py-2 rounded-xl border border-slate-200">⏱️ Waktu: 45 Detik</div>
+                            <div class="bg-white/80 px-4 py-2 rounded-xl border border-slate-200">❤️ Nyawa: 3 Kesempatan</div>
+                            <div class="bg-white/80 px-4 py-2 rounded-xl border border-slate-200">🔥 Bonus Combo!</div>
+                        </div>
+
+                        <button onclick="startArcadeGame()" class="btn-3d px-8 py-4 bg-brand-coral text-white font-extrabold rounded-2xl shadow-lg hover:bg-red-500 text-base flex items-center justify-center gap-2 mx-auto">
+                            <i class="fa-solid fa-play"></i> Mulai Game Arcade
+                        </button>
+                    </div>
+
+                    <!-- Main Arcade Game Interface -->
+                    <div id="arcade-play-card" class="glass-card rounded-3xl p-6 md:p-8 hidden relative overflow-hidden">
+                        
+                        <!-- Top HUD Bar -->
+                        <div class="flex flex-wrap justify-between items-center gap-2 mb-4 bg-slate-900/10 p-3 rounded-2xl border border-white/40">
+                            <div class="flex items-center gap-1 text-red-500 font-extrabold text-lg" id="hud-lives">
+                                ❤️ ❤️ ❤️
+                            </div>
+
+                            <div class="flex items-center gap-2 bg-slate-800 text-white px-4 py-1.5 rounded-xl font-bold text-sm">
+                                <i class="fa-solid fa-stopwatch text-brand-yellow"></i>
+                                <span id="hud-timer">45s</span>
+                            </div>
+
+                            <div class="text-right">
+                                <div class="text-xs font-bold text-slate-500 uppercase">Skor Literasi</div>
+                                <div id="hud-score" class="text-xl font-extrabold text-brand-purple">0</div>
+                            </div>
+                        </div>
+
+                        <!-- Card Stream Display Area -->
+                        <div class="relative my-6 min-h-[220px] flex items-center justify-center">
+                            
+                            <div id="arcade-post-card" class="w-full bg-white p-6 rounded-3xl shadow-xl border-2 border-slate-200 text-center transition-all duration-300 transform">
+                                <span id="post-author" class="inline-block px-3 py-1 bg-slate-100 text-slate-700 font-bold text-xs rounded-full mb-3">
+                                    💬 Forwarded message...
+                                </span>
+                                <h3 id="post-text" class="text-sm md:text-base font-bold text-slate-800 leading-relaxed mb-4">
+                                    "Loading narasi..."
+                                </h3>
+                                <div class="text-[11px] font-semibold text-slate-400">
+                                    Tentukan: Valid atau Hoaks/Jebakan?
+                                </div>
+                            </div>
+
+                            <!-- Feedback Popup -->
+                            <div id="arcade-feedback" class="absolute inset-0 rounded-3xl flex items-center justify-center text-white font-black text-3xl opacity-0 pointer-events-none transition-all duration-200">
+                                BENAR! +100
+                            </div>
+
+                        </div>
+
+                        <!-- Action Control Buttons -->
+                        <div class="grid grid-cols-2 gap-4">
+                            <button onclick="submitArcadeAnswer('VALID')" class="btn-3d py-4 bg-brand-teal hover:bg-teal-500 text-white font-extrabold text-sm md:text-base rounded-2xl flex items-center justify-center gap-2 shadow-lg">
+                                ✅ VALID / FAKTA
+                            </button>
+                            <button onclick="submitArcadeAnswer('HOAKS')" class="btn-3d py-4 bg-brand-coral hover:bg-red-500 text-white font-extrabold text-sm md:text-base rounded-2xl flex items-center justify-center gap-2 shadow-lg">
+                                ❌ HOAKS / MISINFORMASI
+                            </button>
+                        </div>
+
+                    </div>
+
+                    <!-- Game Over Card -->
+                    <div id="arcade-end-card" class="glass-card rounded-3xl p-8 text-center hidden border-t-8 border-brand-purple">
+                        <div class="w-20 h-20 bg-brand-purple/20 text-brand-purple rounded-full flex items-center justify-center text-4xl mx-auto mb-4 animate-bounce">
+                            🏆
+                        </div>
+                        <h2 class="text-3xl font-extrabold text-slate-800 mb-1">
+                            Refleks Literasi Selesai!
+                        </h2>
+                        <p class="text-xs text-slate-500 mb-6">Kemampuan memilah pesan berantai telah dicatat.</p>
+
+                        <div class="grid grid-cols-2 gap-4 max-w-sm mx-auto mb-6">
+                            <div class="bg-white/80 p-4 rounded-2xl border border-slate-200">
+                                <span class="text-xs text-slate-400 font-bold block">SKOR ARCADE</span>
+                                <span id="arcade-final-score" class="text-3xl font-black text-brand-purple">0</span>
+                            </div>
+                            <div class="bg-white/80 p-4 rounded-2xl border border-slate-200">
+                                <span class="text-xs text-slate-400 font-bold block">COMBO TERTINGGI</span>
+                                <span id="arcade-max-streak" class="text-3xl font-black text-brand-yellow">0🔥</span>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-wrap justify-center gap-3">
+                            <button onclick="startArcadeGame()" class="btn-3d px-6 py-3.5 bg-brand-coral text-white font-bold rounded-2xl text-xs flex items-center gap-2">
+                                <i class="fa-solid fa-rotate-right"></i> Coba Lagi
+                            </button>
+                            <button onclick="switchTab('game')" class="btn-3d px-6 py-3.5 bg-brand-teal text-white font-bold rounded-2xl text-xs flex items-center gap-2">
+                                <i class="fa-solid fa-clipboard-check"></i> Kerjakan Evaluasi (20 Soal)
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- SECTION 5: LAB EVALUASI PERTEMUAN 2 (20 SOAL LITERASI + REKAP KELAS 8.3 & 8.4) -->
+            <section id="sec-game" class="tab-content hidden transition-all duration-300">
+                <div class="max-w-4xl mx-auto">
+                    
+                    <!-- Student Registration Card -->
+                    <div id="quiz-start-card" class="glass-card rounded-3xl p-6 md:p-8 text-center border-t-8 border-brand-yellow">
+                        <div class="w-16 h-16 bg-brand-yellow/30 text-slate-800 rounded-3xl flex items-center justify-center text-3xl mx-auto mb-4 animate-bounce">
+                            📝
+                        </div>
+                        <h2 class="text-2xl font-extrabold text-slate-800 mb-2">
+                            Evaluasi Pertemuan 2: Literasi & Kritis Informasi
+                        </h2>
+                        <p class="text-xs md:text-sm text-slate-600 mb-6 max-w-2xl mx-auto">
+                            Terdapat <strong>20 Soal Literasi Berbasis Teks Narasi</strong> dengan pembagian tingkat kesulitan:
+                            <br><span class="text-emerald-600 font-bold">● Mudah (1–5) @10 Poin</span> | 
+                            <span class="text-amber-600 font-bold">● Sedang (6–15) @15 Poin</span> | 
+                            <span class="text-rose-600 font-bold">● Sukar (16–20) @20 Poin</span>.
+                            <br>Nilai akhir dihitung dalam skala 0–100 dan dapat diunduh untuk rekap nilai Mrs. Rahmah.
+                        </p>
+
+                        <div class="max-w-md mx-auto space-y-4 text-left">
+                            <div>
+                                label class="block text-xs font-bold text-slate-700 mb-1">Nama Lengkap Siswa</label>
+                                <input type="text" id="student-name" placeholder="Masukkan Nama Lengkap Anda" class="w-full px-4 py-3 rounded-2xl bg-white/90 border-2 border-slate-200 focus:border-brand-purple focus:outline-none text-sm font-semibold">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Kelas (Pilih Sesuai Kelasmu)</label>
+                                <select id="student-class" class="w-full px-4 py-3 rounded-2xl bg-white/90 border-2 border-slate-200 focus:border-brand-purple focus:outline-none text-sm font-bold">
+                                    <option value="8.3">Kelas 8.3 - SMPN 3 Panongan</option>
+                                    <option value="8.4">Kelas 8.4 - SMPN 3 Panongan</option>
+                                </select>
+                            </div>
+
+                            <button onclick="startQuiz()" class="btn-3d w-full py-4 bg-brand-purple text-white font-extrabold rounded-2xl shadow-lg hover:bg-purple-600 text-sm mt-4 flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-play"></i> Mulai Kerjakan 20 Soal
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Quiz Question Container -->
+                    <div id="quiz-game-card" class="glass-card rounded-3xl p-6 md:p-8 hidden relative overflow-hidden">
+                        
+                        <!-- Progress Bar & Difficulty Tag -->
+                        <div class="flex flex-wrap justify-between items-center gap-2 mb-3">
+                            <div class="flex items-center gap-2">
+                                <span id="question-tracker" class="px-3 py-1 bg-brand-purple/20 text-brand-purple font-extrabold text-xs rounded-full">
+                                    Soal 1 dari 20
+                                </span>
+                                <span id="difficulty-badge" class="px-3 py-1 text-xs font-black rounded-full bg-emerald-100 text-emerald-800">
+                                    Tingkat: MUDAH (10 Poin)
+                                </span>
+                            </div>
+                            <span id="current-score" class="font-extrabold text-sm text-brand-teal">
+                                Total Poin: 0 / 300
+                            </span>
+                        </div>
+
+                        <div class="w-full bg-slate-200 h-2.5 rounded-full mb-6 overflow-hidden">
+                            <div id="progress-bar" class="bg-gradient-to-r from-brand-coral via-brand-purple to-brand-teal h-2.5 rounded-full transition-all duration-300" style="width: 5%"></div>
+                        </div>
+
+                        <!-- Reading Narrative Box (Literacy Focus) -->
+                        <div id="narrative-box" class="bg-amber-50/80 border-l-4 border-amber-400 p-4 rounded-2xl mb-4 text-slate-800 text-xs md:text-sm leading-relaxed font-normal shadow-inner max-h-48 overflow-y-auto">
+                            <strong class="block text-slate-900 font-bold mb-1">📖 Teks Bacaan Literasi:</strong>
+                            <p id="narrative-text">Loading teks bacaan...</p>
+                        </div>
+
+                        <!-- Question Text -->
+                        <div class="bg-white/90 p-4 rounded-2xl border border-slate-200 mb-5 shadow-sm">
+                            <p id="question-text" class="text-slate-900 font-extrabold text-sm md:text-base leading-snug">
+                                Loading soal...
+                            </p>
+                        </div>
+
+                        <!-- Options List -->
+                        <div id="options-container" class="space-y-2.5 mb-6">
+                            <!-- Options dynamically rendered -->
+                        </div>
+
+                        <!-- Answer Explanation Box -->
+                        <div id="explanation-box" class="hidden p-4 rounded-2xl mb-6 transition-all">
+                            <div class="flex items-center gap-2 font-extrabold text-sm mb-1" id="explanation-title">
+                                <!-- Status Icon & Text -->
+                            </div>
+                            <p id="explanation-text" class="text-xs md:text-sm leading-relaxed"></p>
+                            
+                            <button onclick="nextQuestion()" class="btn-3d mt-4 px-6 py-2.5 bg-brand-dark text-white font-bold rounded-xl text-xs flex items-center gap-2">
+                                Lanjut Soal Berikutnya <i class="fa-solid fa-arrow-right"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Quiz Result Card -->
+                    <div id="quiz-result-card" class="glass-card rounded-3xl p-8 text-center hidden">
+                        <div class="w-20 h-20 bg-brand-yellow/30 text-slate-800 rounded-full flex items-center justify-center text-4xl mx-auto mb-4 animate-bounce">
+                            🎓
+                        </div>
+                        <h2 class="text-3xl font-extrabold text-slate-800 mb-1">
+                            Evaluasi Pertemuan 2 Selesai!
+                        </h2>
+                        <p class="text-xs text-slate-500 mb-6">Berikut adalah Laporan Rekap Hasil Uji Literasi Informasi:</p>
+
+                        <!-- Final Scores Breakdown -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-2xl mx-auto mb-6">
+                            <div class="bg-white/90 p-4 rounded-2xl border border-slate-200">
+                                <span class="text-[10px] text-slate-400 font-bold uppercase block">Nilai Skala (0–100)</span>
+                                <span id="final-scaled-score" class="text-4xl font-black text-brand-coral my-1">0</span>
+                                <span class="text-[11px] font-semibold text-slate-500">Nilai Resmi Rapor</span>
+                            </div>
+                            <div class="bg-white/90 p-4 rounded-2xl border border-slate-200">
+                                <span class="text-[10px] text-slate-400 font-bold uppercase block">Total Poin Bobot</span>
+                                <span id="final-raw-score" class="text-3xl font-black text-brand-purple my-1">0 / 300</span>
+                                <span class="text-[11px] font-semibold text-slate-500">Poin Akumulasi</span>
+                            </div>
+                            <div class="bg-white/90 p-4 rounded-2xl border border-slate-200">
+                                <span class="text-[10px] text-slate-400 font-bold uppercase block">Akurasi Benar</span>
+                                <span id="final-accuracy" class="text-3xl font-black text-brand-teal my-1">0 / 20</span>
+                                <span class="text-[11px] font-semibold text-slate-500">Jumlah Soal Tepat</span>
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 max-w-lg mx-auto mb-6">
+                            <p id="feedback-text" class="text-xs md:text-sm font-bold text-slate-700"></p>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="flex flex-wrap justify-center gap-3">
+                            <button onclick="downloadCSV()" class="btn-3d px-6 py-3.5 bg-brand-teal text-white font-bold rounded-2xl text-xs flex items-center gap-2 shadow-md">
+                                <i class="fa-solid fa-file-csv text-lg"></i> Unduh Rekap Nilai (Excel/CSV)
+                            </button>
+                            <button onclick="restartQuiz()" class="btn-3d px-6 py-3.5 bg-slate-200 text-slate-800 font-bold rounded-2xl text-xs flex items-center gap-2">
+                                <i class="fa-solid fa-rotate-right"></i> Ulangi Evaluasi
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+
+        </main>
+
+        <!-- FOOTER -->
+        <footer class="p-4 text-center text-xs font-semibold text-slate-400 relative z-10">
+            <p>© 2026 SMP Negeri 3 Panongan • Modul Berpikir Kritis & Literasi Digital oleh Mrs. Rahmah, S.Sos</p>
+        </footer>
+    </div>
+
+    <!-- CUSTOM ALERT MODAL -->
+    <div id="custom-alert" class="fixed inset-0 z-50 flex items-center justify-center p-4 custom-modal hidden">
+        <div class="bg-white rounded-3xl p-6 max-w-sm w-full text-center shadow-2xl border-2 border-slate-100 animate-float">
+            <div class="text-4xl mb-3">⚠️</div>
+            <h3 class="text-lg font-bold text-slate-800 mb-2" id="alert-title">Pemberitahuan</h3>
+            <p class="text-xs text-slate-600 mb-6" id="alert-message">Pesan alert di sini.</p>
+            <button onclick="closeAlert()" class="btn-3d w-full py-3 bg-brand-coral text-white font-bold rounded-2xl text-xs">
+                Mengerti
+            </button>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        /* ----------------------------------------------------
+           1. THREE.JS 3D ANIMATED BACKGROUND SETUP
+        ---------------------------------------------------- */
+        let scene, camera, renderer, particlesMesh;
+
+        function init3D() {
+            const container = document.getElementById('canvas-container');
+            scene = new THREE.Scene();
+
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.z = 30;
+
+            renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            container.appendChild(renderer.domElement);
+
+            const geometry = new THREE.OctahedronGeometry(1, 0);
+            const count = 40;
+            const group = new THREE.Group();
+
+            const colors = [0xFF6B6B, 0x4ECDC4, 0xFFE66D, 0xA06EE1];
+
+            for (let i = 0; i < count; i++) {
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                const material = new THREE.MeshPhongMaterial({
+                    color: color,
+                    wireframe: Math.random() > 0.5,
+                    shininess: 90,
+                    flatShading: true
+                });
+
+                const mesh = new THREE.Mesh(geometry, material);
+                mesh.position.x = (Math.random() - 0.5) * 60;
+                mesh.position.y = (Math.random() - 0.5) * 60;
+                mesh.position.z = (Math.random() - 0.5) * 40;
+
+                const scale = Math.random() * 1.6 + 0.6;
+                mesh.scale.set(scale, scale, scale);
+
+                mesh.userData = {
+                    rx: (Math.random() - 0.5) * 0.018,
+                    ry: (Math.random() - 0.5) * 0.018,
+                    py: Math.random() * Math.PI * 2
+                };
+
+                group.add(mesh);
+            }
+            scene.add(group);
+            particlesMesh = group;
+
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.85);
+            scene.add(ambientLight);
+
+            const pointLight = new THREE.PointLight(0xffffff, 1.2);
+            pointLight.position.set(20, 20, 20);
+            scene.add(pointLight);
+
+            window.addEventListener('resize', onWindowResize);
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function animate3D() {
+            requestAnimationFrame(animate3D);
+
+            if (particlesMesh) {
+                particlesMesh.rotation.y += 0.0015;
+                particlesMesh.children.forEach(child => {
+                    child.rotation.x += child.userData.rx;
+                    child.rotation.y += child.userData.ry;
+                    child.position.y += Math.sin(Date.now() * 0.001 + child.userData.py) * 0.008;
+                });
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        function showAlert(title, msg) {
+            document.getElementById('alert-title').innerText = title;
+            document.getElementById('alert-message').innerText = msg;
+            document.getElementById('custom-alert').classList.remove('hidden');
+        }
+
+        function closeAlert() {
+            document.getElementById('custom-alert').classList.add('hidden');
+        }
+
+        /* ----------------------------------------------------
+           2. NAVIGATION TAB SWITCHING LOGIC
+        ---------------------------------------------------- */
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('bg-white', 'text-slate-800', 'shadow-sm');
+                btn.classList.add('text-slate-600');
+            });
+
+            const activeContent = document.getElementById(`sec-${tabId}`);
+            if(activeContent) activeContent.classList.remove('hidden');
+
+            const activeNav = document.getElementById(`nav-${tabId}`);
+            if(activeNav) {
+                activeNav.classList.add('bg-white', 'text-slate-800', 'shadow-sm');
+                activeNav.classList.remove('text-slate-600');
+            }
+        }
+
+        /* ----------------------------------------------------
+           3. DATA STUDI KASUS PERTEMUAN 2
+        ---------------------------------------------------- */
+        const caseStudies = [
+            {
+                title: "Analisis Pesan Berantai Suplemen Otak",
+                text: "SEBARKAN PESAN INI!!! Minum perasan jeruk dicampur cuka setiap pagi terbukti secara medis meningkatkan kecerdasan siswa hingga 200% dalam 3 hari! Dokter di seluruh dunia sudah mengakui rahasia ini!",
+                category: "HOAKS & MISINFORMASI",
+                reason: "Menggunakan kalimat perintah provokatif (SEBARKAN PESAN INI!!!), klaim bombastis tak masuk akal (200% dalam 3 hari), dan mengutip sumber anonim ('Dokter di seluruh dunia')."
+            },
+            {
+                title: "Siaran Pers Resmi Pengadaan Komputer",
+                text: "Dinas Pendidikan Provinsi Tangerang telah merealisasikan bantuan 40 unit laptop untuk laboratorium SMPN 3 Panongan per tanggal 12 Februari 2026 guna mendukung pembelajaran digital.",
+                category: "FAKTA BERITA VALID",
+                reason: "Memiliki institusi penanggung jawab yang jelas (Dinas Pendidikan), terdapat tanggal pasti, lokasi penerima spesifik, dan jumlah barang terukur."
+            },
+            {
+                title: "Judul Provokatif vs Isi Berita",
+                text: "Judul Berita: 'Awas! Makanan Kantin Sekolah Mengandung Bahan Berbahaya!' | Isi Berita: 'Petugas Dinkes mengimbau siswa agar selalu mencuci tangan sebelum menyantap jajanan kantin.'",
+                category: "CLICKBAIT / MISLEADING",
+                reason: "Judul dibuat sangat menakutkan (sensasional) padahal isi beritanya hanyalah imbauan rutin pola hidup bersih."
+            }
+        ];
+
+        function renderCaseStudies() {
+            const container = document.getElementById('case-study-list');
+            container.innerHTML = caseStudies.map((c, idx) => `
+                <div class="glass-card rounded-2xl p-5 border-l-6 ${c.category.includes('FAKTA') ? 'border-brand-teal' : 'border-brand-coral'}">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-xs font-bold px-2.5 py-1 rounded-full ${c.category.includes('FAKTA') ? 'bg-teal-100 text-teal-800' : 'bg-red-100 text-red-800'}">
+                            Analisis Literasi #${idx + 1} • ${c.category}
+                        </span>
+                    </div>
+                    <h4 class="font-bold text-slate-800 text-sm md:text-base mb-1">"${c.text}"</h4>
+                    <p class="text-xs text-slate-600 bg-white/70 p-3 rounded-xl border border-slate-200 mt-2">
+                        <strong class="text-slate-800">Ulasan Detektif Literasi:</strong> ${c.reason}
+                    </p>
+                </div>
+            `).join('');
+        }
+
+        /* ----------------------------------------------------
+           4. GAME ONLINE ARCADE PERTEMUAN 2 (WHATSAPP GUARD)
+        ---------------------------------------------------- */
+        const arcadePosts = [
+            { text: "Info BMKG: Prakiraan cuaca wilayah Panongan cerah berawan pada pagi hari dan berpotensi hujan ringan di sore hari.", type: "VALID", author: "@BMKG_Official" },
+            { text: "DARURAT! Jangan pakai HP saat hujan karena radiasi gelombang 5G bisa menyedot petir masuk ke rumah! VIRALKAN!!", type: "HOAKS", author: "@PesanBerantaiWA" },
+            { text: "Pendaftaran lomba FLS2N tingkat SMP resmi dibuka mulai 1-15 Maret melalui portal resmi Kemendikbud.", type: "VALID", author: "@KemendikbudInfo" },
+            { text: "Bagi-bagi laptop gratis dari pemerintah untuk semua siswa SMP cukup klik link bit.ly/laptop-gratis-12345 dan isi kata sandi emailmu!", type: "HOAKS", author: "@PesanPhishing" },
+            { text: "SMPN 3 Panongan melaksanakan kegiatan Senam Bersama setiap hari Jumat pagi sebelum KBM dimulai.", type: "VALID", author: "@HumasSMPN3" },
+            { text: "Makan mi instan bersama cokelat dalam waktu bersamaan bisa menghasilkan racun mematikan secara instan!", type: "HOAKS", author: "@GrupWA_Tetangga" },
+            { text: "Pemerintah menetapkan libur awal Ramadan 1447 H berpatokan pada Sidang Isbat Kementerian Agama.", type: "VALID", author: "@BeritaResmi" },
+            { text: "Siapa saja yang menyebarkan pesan ini ke 10 orang akan mendapatkan pulsa 100rb nanti malam secara gratis!", type: "HOAKS", author: "@PengirimAnonim" }
+        ];
+
+        let arcadeState = {
+            score: 0,
+            lives: 3,
+            timeLeft: 45,
+            timerId: null,
+            currentIndex: 0,
+            streak: 0,
+            maxStreak: 0,
+            shuffledPosts: []
+        };
+
+        function startArcadeGame() {
+            arcadeState.score = 0;
+            arcadeState.lives = 3;
+            arcadeState.timeLeft = 45;
+            arcadeState.streak = 0;
+            arcadeState.maxStreak = 0;
+            arcadeState.shuffledPosts = [...arcadePosts].sort(() => Math.random() - 0.5);
+            arcadeState.currentIndex = 0;
+
+            document.getElementById('arcade-start-card').classList.add('hidden');
+            document.getElementById('arcade-end-card').classList.add('hidden');
+            document.getElementById('arcade-play-card').classList.remove('hidden');
+
+            updateArcadeHUD();
+            renderArcadePost();
+
+            if (arcadeState.timerId) clearInterval(arcadeState.timerId);
+            arcadeState.timerId = setInterval(() => {
+                arcadeState.timeLeft--;
+                document.getElementById('hud-timer').innerText = `${arcadeState.timeLeft}s`;
+
+                if (arcadeState.timeLeft <= 0 || arcadeState.lives <= 0) {
+                    endArcadeGame();
+                }
+            }, 1000);
+        }
+
+        function updateArcadeHUD() {
+            document.getElementById('hud-score').innerText = arcadeState.score;
+            document.getElementById('hud-timer').innerText = `${arcadeState.timeLeft}s`;
+            
+            let heartsStr = '';
+            for (let i = 0; i < 3; i++) {
+                heartsStr += i < arcadeState.lives ? '❤️ ' : '🖤 ';
+            }
+            document.getElementById('hud-lives').innerHTML = heartsStr;
+        }
+
+        function renderArcadePost() {
+            if (arcadeState.currentIndex >= arcadeState.shuffledPosts.length) {
+                arcadeState.shuffledPosts = [...arcadePosts].sort(() => Math.random() - 0.5);
+                arcadeState.currentIndex = 0;
+            }
+
+            const current = arcadeState.shuffledPosts[arcadeState.currentIndex];
+            document.getElementById('post-author').innerText = `💬 ${current.author}`;
+            document.getElementById('post-text').innerText = `"${current.text}"`;
+
+            const card = document.getElementById('arcade-post-card');
+            card.classList.remove('scale-95', 'bg-red-100', 'bg-teal-100');
+        }
+
+        function submitArcadeAnswer(userChoice) {
+            const current = arcadeState.shuffledPosts[arcadeState.currentIndex];
+            const feedbackEl = document.getElementById('arcade-feedback');
+            const cardEl = document.getElementById('arcade-post-card');
+
+            if (userChoice === current.type) {
+                arcadeState.streak++;
+                if (arcadeState.streak > arcadeState.maxStreak) arcadeState.maxStreak = arcadeState.streak;
+
+                const points = 100 + (arcadeState.streak > 1 ? arcadeState.streak * 25 : 0);
+                arcadeState.score += points;
+
+                feedbackEl.innerText = `TEPAT! +${points} ${arcadeState.streak > 1 ? `(${arcadeState.streak}x Combo🔥)` : ''}`;
+                feedbackEl.className = "absolute inset-0 rounded-3xl flex items-center justify-center text-white font-black text-2xl md:text-3xl bg-emerald-500/90 opacity-100 transition-all duration-200";
+            } else {
+                arcadeState.lives--;
+                arcadeState.streak = 0;
+
+                feedbackEl.innerText = `SALAH! Harus: ${current.type}`;
+                feedbackEl.className = "absolute inset-0 rounded-3xl flex items-center justify-center text-white font-black text-2xl md:text-3xl bg-rose-500/90 opacity-100 transition-all duration-200";
+                
+                cardEl.classList.add('animate-shake');
+                setTimeout(() => cardEl.classList.remove('animate-shake'), 400);
+            }
+
+            updateArcadeHUD();
+
+            setTimeout(() => {
+                feedbackEl.classList.remove('opacity-100');
+                feedbackEl.classList.add('opacity-0');
+                arcadeState.currentIndex++;
+
+                if (arcadeState.lives <= 0) {
+                    endArcadeGame();
+                } else {
+                    renderArcadePost();
+                }
+            }, 650);
+        }
+
+        function endArcadeGame() {
+            clearInterval(arcadeState.timerId);
+            document.getElementById('arcade-play-card').classList.add('hidden');
+            document.getElementById('arcade-end-card').classList.remove('hidden');
+
+            document.getElementById('arcade-final-score').innerText = arcadeState.score;
+            document.getElementById('arcade-max-streak').innerText = `${arcadeState.maxStreak}🔥`;
+        }
+
+        /* ----------------------------------------------------
+           5. LAB EVALUASI PERTEMUAN 2 (20 SOAL LITERASI + REKAP KELAS 8.3 & 8.4)
+        ---------------------------------------------------- */
+        const quizQuestions = [
+            // --- TINGKAT MUDAH (Soal 1-5, @10 Poin = Total 50 Poin) ---
+            {
+                level: "MUDAH",
+                points: 10,
+                narrative: "Pesan Broadcast WhatsApp: 'PENTING! Diberitahukan kepada seluruh warga Panongan untuk tidak keluar rumah pada malam Sabtu karena akan ada fenomena angin radiasi berbahaya dari luar angkasa. Sebarkan ke 10 grup sekarang juga agar semua selamat!!'",
+                question: "1. Apa bukti paling mencolok yang menunjukkan bahwa pesan di atas adalah misinformasi/hoaks?",
+                options: [
+                    "Pesan tersebut dikirim pada hari Jumat.",
+                    "Menggunakan bahasa emosional-mendesak ('Sebarkan ke 10 grup sekarang!!') dan klaim tidak ilmiah.",
+                    "Pesan memuat nama wilayah Panongan secara spesifik.",
+                    "Disampaikan melalui media aplikasi WhatsApp."
+                ],
+                correct: 1,
+                explanation: "Tanda utama pesan hoaks adalah adanya desakan untuk membagikan ke banyak grup serta klaim ilmiah palsu yang tak rasional."
+            },
+            {
+                level: "MUDAH",
+                points: 10,
+                narrative: "Artikel Media Online: 'Sebanyak 120 siswa kelas 8 SMP Negeri 3 Panongan mengikuti simulasi asesmen digital di laboratorium komputer sekolah pada hari Selasa, 17 Februari 2026.'",
+                question: "2. Informasi dalam narasi di atas tergolong sebagai FAKTA karena...",
+                options: [
+                    "Ditulis dengan kalimat yang sangat panjang.",
+                    "Memuat angka pasti (120 siswa), lokasi spesifik, serta tanggal kejadian yang dapat diverifikasi.",
+                    "Menggunakan istilah teknis yang sulit dipahami.",
+                    "Memuji keberhasilan laboratorium komputer."
+                ],
+                correct: 1,
+                explanation: "Fakta ditandai oleh adanya data objektif seperti jumlah (120 siswa), lokasi, dan waktu pelaksanaan."
+            },
+            {
+                level: "MUDAH",
+                points: 10,
+                narrative: "Postongan Media Sosial: 'Menurut saya, perpustakaan sekolah kita terasa sangat nyaman dan merupakan tempat terbaik untuk bersantai di seluruh Tangerang.'",
+                question: "3. Frasa manakah dalam kalimat di atas yang menandakan bahwa pernyataan tersebut adalah OPINI?",
+                options: [
+                    "Perpustakaan sekolah kita",
+                    "Di seluruh Tangerang",
+                    "'Menurut saya' dan frasa 'tempat terbaik'",
+                    "Tempat untuk bersantai"
+                ],
+                correct: 2,
+                explanation: "Frasa 'Menurut saya' dan 'tempat terbaik' adalah ungkapan penilaian subjektif pribadi."
+            },
+            {
+                level: "MUDAH",
+                points: 10,
+                narrative: "Pemberitahuan Resmi Sekolah: 'Berdasarkan surat keputusan Kepala SMPN 3 Panongan, kegiatan Penilaian Tengah Semester genap akan diselenggarakan pada 2 - 7 Maret 2026.'",
+                question: "4. Mengapa pemberitahuan di atas dapat dipercaya oleh siswa?",
+                options: [
+                    "Karena beritanya dibagikan oleh kawan sekelas.",
+                    "Karena memiliki dasar rujukan jelas yaitu Surat Keputusan Kepala Sekolah.",
+                    "Karena beritanya menyenangkan bagi seluruh murid.",
+                    "Karena ditulis menggunakan huruf bercetak tebal."
+                ],
+                correct: 1,
+                explanation: "Keabsahan informasi ditentukan oleh adanya sumber resmi penanggung jawab (Surat Keputusan Kepala Sekolah)."
+            },
+            {
+                level: "MUDAH",
+                points: 10,
+                narrative: "Literasi Digital: 'Kebutuhan utama saat membaca berita digital adalah memverifikasi kebenarannya sebelum membagikannya ke media sosial.'",
+                question: "5. Istilah ringkas untuk menggambarkan tindakan 'memeriksa kebenaran sebelum membagikan' adalah...",
+                options: [
+                    "Clickbaiting",
+                    "Saring Sebelum Sharing",
+                    "Copy Paste Berita",
+                    "Spamming Pesan"
+                ],
+                correct: 1,
+                explanation: "Slogan 'Saring Sebelum Sharing' adalah prinsip dasar etika dan literasi di dunia digital."
+            },
+
+            // --- TINGKAT SEDANG (Soal 6-15, @15 Poin = Total 150 Poin) ---
+            {
+                level: "SEDANG",
+                points: 15,
+                narrative: "Teks Berita: 'Pemerintah Kabupaten Tangerang mengoperasikan bus sekolah gratis untuk rute utama Panongan-Cikupa. Langkah ini diambil untuk mengurangi kemacetan dan menekan angka kecelakaan pelajar. Namun, sebagian warga berpendapat bahwa jumlah armadanya masih kurang banyak.'",
+                question: "6. Manakah dari pernyataan berikut yang merupakan penggabungan FAKTA dan OPINI dari teks di atas?",
+                options: [
+                    "Bus sekolah dioperasikan gratis (Fakta) & Jumlah armadanya masih kurang banyak (Opini).",
+                    "Rute bus melalui Panongan-Cikupa (Opini) & Bus berwarna kuning (Fakta).",
+                    "Mengurangi kemacetan (Opini) & Bus berjalan di jalan raya (Fakta).",
+                    "Pemerintah ada di Tangerang (Opini) & Bus sekolah gratis (Opini)."
+                ],
+                correct: 0,
+                explanation: "Pengoperasian bus gratis adalah fakta program resmi, sedangkan penilaian 'masih kurang banyak' adalah opini warga."
+            },
+            {
+                level: "SEDANG",
+                points: 15,
+                narrative: "Pesan WA Berantai: 'KLIK LINK INI! Bank Indonesia membagikan subsidi bantuan tunai Rp 1.500.000 untuk seluruh siswa SMP dalam rangka peringatan pendidikan! Masukkan NIK dan No rekening orang tuamu di domain http://bantuan-tunai-bi-gratisan.weebly.com!'",
+                question: "7. Mengapa tautan (link) dalam pesan di atas dipastikan sebagai jebakan pishing/hoaks?",
+                options: [
+                    "Karena nominal bantuannya terlalu sedikit.",
+                    "Karena menggunakan alamat domain tidak resmi (weebly.com) dan meminta data sensitif seperti NIK & rekening.",
+                    "Karena dibagikan pada jam belajar sekolah.",
+                    "Karena Bank Indonesia tidak berada di Jakarta."
+                ],
+                correct: 1,
+                explanation: "Lembaga resmi pemerintah menggunakan domain domain .go.id atau .id, bukan domain gratisan (.weebly.com) serta tak meminta data sensitif via link liar."
+            },
+            {
+                level: "SEDANG",
+                points: 15,
+                narrative: "Narasi Artikel: 'Studi dari Lembaga Riset Kesehatan menunjukkan bahwa anak remaja yang tidur kurang dari 7 jam sehari berisiko mengalami penurunan konsentrasi hingga 35%. Oleh karena itu, bermain game hingga larut malam sangat tidak dianjurkan bagi pelajar.'",
+                question: "8. Apakah gagasan utama yang ingin disampaikan oleh penulis teks literasi di atas?",
+                options: [
+                    "Remaja dilarang memiliki telepon genggam.",
+                    "Kurang tidur akibat begadang bermain game berdampak negatif pada konsentrasi belajar remaja.",
+                    "Bermain game adalah satu-satunya penyebab penurunan konsentrasi.",
+                    "Lembaga riset menyarankan remaja tidur 12 jam sehari."
+                ],
+                correct: 1,
+                explanation: "Teks menghubungkan temuan ilmiah riset tidur dengan imbauan mencegah begadang bermain game pada pelajar."
+            },
+            {
+                level: "SEDANG",
+                points: 15,
+                narrative: "Teks Clickbait: 'HEBOH! Guru SMP ini Mengeluarkan Murid dari Kelas, Alasannya Bikin Menangis!' Isi berita sebenarnya: Guru meminta siswa mengambil buku tugasnya yang tertinggal di tas lapangan.",
+                question: "9. Strategi literasi apa yang tepat untuk menghadapi berita bertipe Clickbait (umpan klik) seperti ini?",
+                options: [
+                    "Sebarkan judulnya saja ke grup keluarga.",
+                    "Jangan mudah terpancing emosi oleh judul sensasional, baca isi beritanya sebelum menilai.",
+                    "Percaya 100% bahwa guru tersebut bertindak jahat.",
+                    "Langsung membuat postingan protes di media sosial."
+                ],
+                correct: 1,
+                explanation: "Clickbait sengaja memanipulasi judul agar tampak dramatis; pembaca kritis harus membaca keseluruhan isi teks."
+            },
+            {
+                level: "SEDANG",
+                points: 15,
+                narrative: "Laporan Kegiatan: 'Dalam rangka peringatan Hari Literasi, SMPN 3 Panongan mengumpulkan 350 buku dari donasi siswa. Kepala Sekolah menyatakan bahwa donasi ini merupakan bukti kepedulian sosial yang sangat luar biasa.'",
+                question: "10. Manakah yang tergolong Kutipan Opini Narasumber dalam teks di atas?",
+                options: [
+                    "Pengumpulan 350 buku dari donasi siswa.",
+                    "Peringatan Hari Literasi di SMPN 3 Panongan.",
+                    "Pernyataan Kepala Sekolah bahwa donasi ini 'merupakan bukti kepedulian sosial yang sangat luar biasa'.",
+                    "Pengadaan kegiatan di hari efektif sekolah."
+                ],
+                correct: 2,
+                explanation: "Pernyataan bernada pujian 'sangat luar biasa' dari Kepala Sekolah adalah opini/penilaian narasumber."
+            },
+            {
+                level: "SEDANG",
+                points: 15,
+                narrative: "Kasus Media Sosial: Seseorang mengedit video pidato seorang tokoh dengan memotong kalimat penting di tengahnya sehingga maknanya berubah menjadi terbalik dan memicu perdebatan netizen.",
+                question: "11. Teknik manipulasi informasi dalam video yang dipotong-potong tersebut dikenal dengan istilah...",
+                options: [
+                    "Konteks Asli (Original Context)",
+                    "Misinformasi Terkontekstual / Media Dipotong (Out of Context)",
+                    "Riset Ilmiah Valid",
+                    "Karya Sastra Otentik"
+                ],
+                correct: 1,
+                explanation: "Memotong video/teks keluar dari konteks aslinya (Out of Context) adalah trik memanipulasi fakta."
+            },
+            {
+                level: "SEDANG",
+                points: 15,
+                narrative: "Pengamatan Teks: Teks A menyebutkan angka korban bencana berdasarkan data BNPB. Teks B menuliskan ramalan seorang peramal mengenai bencana susulan bulan depan.",
+                question: "12. Teks manakah yang memenuhi kaidah literasi informasi tepercaya?",
+                options: [
+                    "Teks B, karena ramalan masa depan selalu terbukti.",
+                    "Teks A, karena bersumber dari lembaga resmi pemerintah yang menangani bencana (BNPB).",
+                    "Kedua teks sama-sama tidak dapat dipercaya.",
+                    "Teks B, karena ditulis dengan gaya lebih seram."
+                ],
+                correct: 1,
+                explanation: "Informasi tepercaya wajib bersumber dari otoritas atau lembaga kredibel yang berwenang (BNPB)."
+            },
+            {
+                level: "SEDANG",
+                points: 15,
+                narrative: "Pesan Edukasi: 'Dampak buruk menyebarkan hoaks bukan hanya membuat panik, tetapi pembaginya juga bisa dijerat sanksi hukum sesuai Undang-Undang Informasi dan Transaksi Elektronik (UU ITE).'",
+                question: "13. Implikasi hukum dari menyebarkan berita bohong di Indonesia diatur dalam...",
+                options: [
+                    "UU Hak Cipta",
+                    "UU Informasi dan Transaksi Elektronik (UU ITE)",
+                    "UU Lalu Lintas",
+                    "UU Olahraga Nasional"
+                ],
+                correct: 1,
+                explanation: "Penyebaran hoaks dan berita menyesatkan di media digital diatur dalam regulasi UU ITE."
+            },
+            {
+                level: "SEDANG",
+                points: 15,
+                narrative: "Teks Evaluasi: 'Seorang siswa menerima pesan bahwa esok sekolah diliburkan total. Pesan itu hanya berupa gambar tangkapan layar (screenshot) tanpa kop surat dan tanda tangan Kepala Sekolah.'",
+                question: "14. Langkah cerdas yang harus dilakukan siswa tersebut sebelum memutuskan untuk tidak hadir di sekolah adalah...",
+                options: [
+                    "Langsung mematikan alarm dan lanjut tidur.",
+                    "Mengonfirmasi kebenaran info tersebut kepada Wali Kelas atau pengumuman resmi sekolah.",
+                    "Mengirim screenshot tersebut ke semua kawan di kelas.",
+                    "Mengajak teman-teman berlibur ke pantai."
+                ],
+                correct: 1,
+                explanation: "Selalu lakukan verifikasi ke pihak berwenang (Wali Kelas/Sekolah) sebelum memercayai rumor tangkapan layar."
+            },
+            {
+                level: "SEDANG",
+                points: 15,
+                narrative: "Literasi Media: 'Foto sebuah jalan rusak diunggah dengan narasi bahwa jalan itu berada di Panongan tahun 2026. Setelah diperiksa melalui fitur Reverse Image Search, foto itu ternyata kejadian di luar negeri tahun 2018.'",
+                question: "15. Metode pencarian gambar secara terbalik untuk mengecek keaslian asal-usul foto disebut...",
+                options: [
+                    "Image Editing",
+                    "Reverse Image Search (Pencarian Gambar Terbalik)",
+                    "Screen Recording",
+                    "Photo Filters"
+                ],
+                correct: 1,
+                explanation: "Reverse Image Search (misal via Google Images) digunakan untuk melacak riwayat asli foto di internet."
+            },
+
+            // --- TINGKAT SUKAR (Soal 16-20, @20 Poin = Total 100 Poin) ---
+            {
+                level: "SUKAR",
+                points: 20,
+                narrative: "Wacana Analisis Kritis: 'Dalam sebuah diskusi daring, Kelompok A berargumen bahwa penggunaan HP di kelas harus dilarang 100% karena menurunkan nilai ujian. Kelompok B menunjukkan data riset bahwa penggunaan HP berbasis aplikasi edukasi interaktif justru meningkatkan partisipasi belajar siswa hingga 40%. Peneliti menyimpulkan bahwa yang bermasalah bukan alatnya, melainkan kontrol penggunaannya.'",
+                question: "16. Berdasarkan teks di atas, manakah analisis simpulan kritis yang paling obyektif dan seimbang?",
+                options: [
+                    "Penggunaan HP di sekolah harus dilarang total tanpa pengecualian.",
+                    "HP tidak berdampak apapun terhadap kegiatan pembelajaran.",
+                    "HP merupakan sarana netral; dampaknya bergantung pada pengelolaan serta tujuan penggunaannya dalam KBM.",
+                    "Riset Kelompok B dipastikan salah karena HP hanya untuk bermain game."
+                ],
+                correct: 2,
+                explanation: "Simpulan kritis yang adil melihat kedua sisi argumen dan menyimpulkan bahwa pengelolaan penggunaan adalah kunci utamanya."
+            },
+            {
+                level: "SUKAR",
+                points: 20,
+                narrative: "Kasus Bias Informasi: 'Seorang siswa hanya menyukai topik olahraga. Di media sosialnya, algoritma terus menampilkan berita bahwa olahraga adalah satu-satunya kunci sukses masa depan, sementara pendidikan akademis tidak penting. Siswa tersebut akhirnya percaya sepenuhnya pada narasi tersebut.'",
+                question: "17. Fenomena terjebak dalam ruang lingkup informasi yang seragam sesuai kesukaan pribadi akibat algoritma media sosial disebut...",
+                options: [
+                    "Digital Literacy",
+                    "Echo Chamber / Filter Bubble (Gelembung Informasi)",
+                    "Critical Thinking",
+                    "Data Encryption"
+                ],
+                correct: 1,
+                explanation: "Echo Chamber/Filter Bubble terjadi ketika algoritma hanya menyajikan konten yang kita sukai sehingga menutup pandangan kritis dari perspektif lain."
+            },
+            {
+                level: "SUKAR",
+                points: 20,
+                narrative: "Studi Kasus Kebijakan: 'Sebuah artikel berita daring memuat judul: Kebijakan Baru Jam Belajar Sekolah Ditolak 90% Siswa! Namun di paragraf kelima tertulis bahwa survei tersebut hanya melibatkan 10 orang siswa di satu warung kopi.'",
+                question: "18. Cacat logika dan metodologi apa yang terjadi pada pemberitaan di atas?",
+                options: [
+                    "Generalisasi terburu-buru (Hasty Generalization) karena sampel 10 orang tidak mewakili populasi seluruh siswa.",
+                    "Pengambilan data yang terlalu akurat dan ilmiah.",
+                    "Penulis berita menggunakan rumus statistik standar nasional.",
+                    "Survei tersebut sudah disetujui oleh Kementerian Pendidikan."
+                ],
+                correct: 0,
+                explanation: "Menarik simpulan umum (90% siswa) dari sampel yang sangat kecil dan tidak representatif (10 orang di warung) adalah kelemahan logika sampel terbatas."
+            },
+            {
+                level: "SUKAR",
+                points: 20,
+                narrative: "Kutipan Berita Sintetis (AI): 'Video memperlihatkan seorang pejabat mengumumkan pembatalan libur sekolah secara mendadak. Namun saat diteliti, gerakan bibir pejabat tersebut tidak sinkron dengan suara yang terdengar dan bayangan wajah tampak patah-patah.'",
+                question: "19. Teknologi kecerdasan buatan (AI) yang digunakan untuk merekayasa wajah dan suara seseorang hingga menyerupai aslinya dipanggil...",
+                options: [
+                    "Virtual Reality",
+                    "Deepfake",
+                    "Cloud Computing",
+                    "Augmented Reality"
+                ],
+                correct: 1,
+                explanation: "Deepfake adalah teknologi AI manipulasi media yang menciptakan video atau audio buatan menyerupai sosok asli."
+            },
+            {
+                level: "SUKAR",
+                points: 20,
+                narrative: "Refleksi Mindful Learning Mrs. Rahmah, S.Sos: 'Seorang detektif informasi yang cerdas tidak hanya mampu membedakan fakta dan opini, tetapi juga memiliki empati digital sebelum menekan tombol bagikan (share).'",
+                question: "20. Manakah wujud nyata penerapan 'Empati Digital' saat menerima berita mengejutkan tentang teman kita?",
+                options: [
+                    "Langsung meneruskan berita tersebut ke grup sekolah agar menjadi bahan perbincangan.",
+                    "Menahan diri untuk tidak menyebarkan berita pribadi, mengonfirmasi secara privat, dan menjaga reputasi kawan.",
+                    "Menambahkan bumbu cerita agar berita semakin seru dibaca.",
+                    "Membuat konten video kritik di media sosial."
+                ],
+                correct: 1,
+                explanation: "Empati digital berarti menjaga privasi, menghormati persahabatan, serta menahan diri dari menyebarkan gosip/hoaks yang merugikan orang lain."
+            }
+        ];
+
+        let currentQIndex = 0;
+        let totalRawScore = 0;
+        let correctAnswersCount = 0;
+        let studentData = { name: '', class: '8.3', scoreRaw: 0, scoreScaled: 0, correctCount: 0, answers: [] };
+
+        function startQuiz() {
+            const nameInput = document.getElementById('student-name').value.trim();
+            const classInput = document.getElementById('student-class').value;
+
+            if (!nameInput) {
+                showAlert('Nama Wajib Diisi', 'Harap masukkan nama lengkap Anda terlebih dahulu!');
+                return;
+            }
+
+            studentData.name = nameInput;
+            studentData.class = classInput;
+            studentData.answers = [];
+            currentQIndex = 0;
+            totalRawScore = 0;
+            correctAnswersCount = 0;
+
+            document.getElementById('quiz-start-card').classList.add('hidden');
+            document.getElementById('quiz-game-card').classList.remove('hidden');
+            document.getElementById('quiz-result-card').classList.add('hidden');
+
+            renderQuestion();
+        }
+
+        function renderQuestion() {
+            const q = quizQuestions[currentQIndex];
+            
+            document.getElementById('question-tracker').innerText = `Soal ${currentQIndex + 1} dari ${quizQuestions.length}`;
+            document.getElementById('current-score').innerText = `Total Poin: ${totalRawScore} / 300`;
+            document.getElementById('progress-bar').style.width = `${((currentQIndex + 1) / quizQuestions.length) * 100}%`;
+            
+            // Badge Difficulty UI
+            const badgeEl = document.getElementById('difficulty-badge');
+            if (q.level === "MUDAH") {
+                badgeEl.className = "px-3 py-1 text-xs font-black rounded-full bg-emerald-100 text-emerald-800";
+                badgeEl.innerText = `Tingkat: MUDAH (10 Poin)`;
+            } else if (q.level === "SEDANG") {
+                badgeEl.className = "px-3 py-1 text-xs font-black rounded-full bg-amber-100 text-amber-800";
+                badgeEl.innerText = `Tingkat: SEDANG (15 Poin)`;
+            } else {
+                badgeEl.className = "px-3 py-1 text-xs font-black rounded-full bg-rose-100 text-rose-800";
+                badgeEl.innerText = `Tingkat: SUKAR (20 Poin)`;
+            }
+
+            document.getElementById('narrative-text').innerText = q.narrative;
+            document.getElementById('question-text').innerText = q.question;
+
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = '';
+
+            q.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = "btn-option w-full p-3.5 rounded-2xl bg-white border-2 border-slate-200 hover:border-brand-purple text-left font-bold text-xs md:text-sm text-slate-700 transition-all flex items-start justify-between gap-2 shadow-sm";
+                btn.innerHTML = `<span><strong>${String.fromCharCode(65 + idx)}.</strong> ${opt}</span> <i class="fa-regular fa-circle text-slate-300 mt-0.5"></i>`;
+                btn.onclick = () => checkAnswer(idx, btn);
+                optionsContainer.appendChild(btn);
+            });
+
+            document.getElementById('explanation-box').classList.add('hidden');
+        }
+
+        function checkAnswer(selectedIdx, btnEl) {
+            const allBtns = document.querySelectorAll('.btn-option');
+            allBtns.forEach(b => b.disabled = true);
+
+            const q = quizQuestions[currentQIndex];
+            const isCorrect = (selectedIdx === q.correct);
+
+            if (isCorrect) {
+                totalRawScore += q.points;
+                correctAnswersCount++;
+                btnEl.classList.remove('bg-white', 'border-slate-200');
+                btnEl.classList.add('bg-emerald-50', 'border-emerald-500', 'text-emerald-800');
+                btnEl.querySelector('i').className = "fa-solid fa-circle-check text-emerald-500 mt-0.5";
+            } else {
+                btnEl.classList.remove('bg-white', 'border-slate-200');
+                btnEl.classList.add('bg-rose-50', 'border-rose-500', 'text-rose-800');
+                btnEl.querySelector('i').className = "fa-solid fa-circle-xmark text-rose-500 mt-0.5";
+                
+                // Highlight correct one
+                allBtns[q.correct].classList.add('bg-emerald-50', 'border-emerald-500', 'text-emerald-800');
+            }
+
+            studentData.answers.push({
+                questionNum: currentQIndex + 1,
+                level: q.level,
+                pointsEarned: isCorrect ? q.points : 0,
+                selected: q.options[selectedIdx],
+                isCorrect: isCorrect
+            });
+
+            const expBox = document.getElementById('explanation-box');
+            const expTitle = document.getElementById('explanation-title');
+            const expText = document.getElementById('explanation-text');
+
+            expBox.classList.remove('hidden', 'bg-emerald-100', 'bg-rose-100');
+            if (isCorrect) {
+                expBox.classList.add('bg-emerald-100/90', 'border', 'border-emerald-300');
+                expTitle.className = "flex items-center gap-2 font-extrabold text-sm text-emerald-800 mb-1";
+                expTitle.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-600"></i> Jawaban Tepat! (+${q.points} Poin)`;
+            } else {
+                expBox.classList.add('bg-rose-100/90', 'border', 'border-rose-300');
+                expTitle.className = "flex items-center gap-2 font-extrabold text-sm text-rose-800 mb-1";
+                expTitle.innerHTML = `<i class="fa-solid fa-circle-xmark text-rose-600"></i> Jawaban Belum Tepat (0 Poin)`;
+            }
+
+            expText.innerText = q.explanation;
+            document.getElementById('current-score').innerText = `Total Poin: ${totalRawScore} / 300`;
+        }
+
+        function nextQuestion() {
+            currentQIndex++;
+            if (currentQIndex < quizQuestions.length) {
+                renderQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        function showResults() {
+            document.getElementById('quiz-game-card').classList.add('hidden');
+            document.getElementById('quiz-result-card').classList.remove('hidden');
+
+            // Max Raw Score is 300 Poin -> Convert to Scale 0-100
+            const scaledScore = Math.round((totalRawScore / 300) * 100);
+
+            studentData.scoreRaw = totalRawScore;
+            studentData.scoreScaled = scaledScore;
+            studentData.correctCount = correctAnswersCount;
+
+            document.getElementById('final-scaled-score').innerText = scaledScore;
+            document.getElementById('final-raw-score').innerText = `${totalRawScore} / 300`;
+            document.getElementById('final-accuracy').innerText = `${correctAnswersCount} / 20`;
+
+            const feedback = document.getElementById('feedback-text');
+            if (scaledScore >= 88) {
+                feedback.innerHTML = `🏆 <strong>Luar Biasa! (Predikat A)</strong><br>Selamat ${studentData.name}! Anda adalah Agen Detektif Literasi Digital Unggulan Kelas ${studentData.class}! Mampu menganalisis narasi panjang secara sangat tajam.`;
+            } else if (scaledScore >= 70) {
+                feedback.innerHTML = `👍 <strong>Bagus Sekali! (Predikat B - Tuntas)</strong><br>Kerja bagus ${studentData.name} dari Kelas ${studentData.class}. Pemahaman literasi dan verifikasi beritamu sudah memenuhi standar kelulusan.`;
+            } else {
+                feedback.innerHTML = `📚 <strong>Perlu Latihan Literasi (Predikat C / Remidi)</strong><br>Jangan berkecil hati ${studentData.name}. Pelajari kembali strategi membedakan fakta, kutipan, dan hoaks lalu ulangi evaluasi ini.`;
+            }
+        }
+
+        function restartQuiz() {
+            document.getElementById('quiz-result-card').classList.add('hidden');
+            document.getElementById('quiz-start-card').classList.remove('hidden');
+        }
+
+        /* ----------------------------------------------------
+           6. GENERATE & EXPORT CSV REKAPITULASI KELAS 8.3 / 8.4
+        ---------------------------------------------------- */
+        function downloadCSV() {
+            const now = new Date().toLocaleString('id-ID');
+            let csvContent = "data:text/csv;charset=utf-8,";
+            
+            // Header Info Guru & Sekolah
+            csvContent += "REKAPITULASI EVALUASI PERTEMUAN 2 - LITERASI DIGITAL & BERPIKIR KRITIS\n";
+            csvContent += "SMP NEGERI 3 PANONGAN - TAHUN AJARAN 2025/2026\n";
+            csvContent += "Guru Pengampu: Mrs. Rahmah S.Sos\n";
+            csvContent += `Tanggal Rekap: "${now}"\n\n`;
+
+            // Data Ringkasan Siswa
+            csvContent += "DATA REKAPITULASI SISWA:\n";
+            csvContent += "Nama Lengkap,Kelas,Nilai Akhir (0-100),Total Poin Bobot (300),Jumlah Benar (20 Soal),Status Kelulusan\n";
+            csvContent += `"${studentData.name}","Kelas ${studentData.class}",${studentData.scoreScaled},${studentData.scoreRaw},${studentData.correctCount},"${studentData.scoreScaled >= 70 ? 'TUNTAS' : 'REMIDI'}"\n\n`;
+
+            // Rincian Jawaban per Soal
+            csvContent += "RINCIAN ANALISIS JAWABAN PER SOAL:\n";
+            csvContent += "No Soal,Tingkat Kesulitan,Poin Diperoleh,Status Jawaban,Jawaban Siswa\n";
+            studentData.answers.forEach(a => {
+                csvContent += `Soal ${a.questionNum},"${a.level}",${a.pointsEarned},"${a.isCorrect ? 'BENAR' : 'SALAH'}","${a.selected.replace(/"/g, '""')}"\n`;
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `Rekap_Pertemuan2_Kelas${studentData.class}_${studentData.name.replace(/\s+/g, '_')}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        /* ----------------------------------------------------
+           7. INIT ON WINDOW LOAD
+        ---------------------------------------------------- */
+        window.onload = function() {
+            init3D();
+            animate3D();
+            renderCaseStudies();
+        };
+    </script>
+</body>
+</html>
